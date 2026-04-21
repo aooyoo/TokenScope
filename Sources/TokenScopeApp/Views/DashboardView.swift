@@ -562,7 +562,7 @@ private struct ModelChip: View {
                     .font(.caption)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .frame(width: 140, alignment: .leading)
+                    .frame(width: 84, alignment: .leading)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
