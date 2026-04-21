@@ -1,0 +1,15 @@
+# Swift Package Manager
+.build/
+
+# Xcode / SwiftPM user data
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+
+# Build outputs
+TokenScope.app/
+build/
+
+# macOS
+.DS_Store
