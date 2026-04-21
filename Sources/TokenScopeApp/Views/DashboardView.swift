@@ -254,25 +254,36 @@ struct DashboardView: View {
             }
             .toggleStyle(.checkbox)
             if !availableModels.isEmpty {
-                HStack(spacing: 6) {
-                    ForEach(availableModels, id: \.self) { m in
-                        ModelChip(
-                            title: m,
-                            color: modelPalette[m] ?? .accentColor,
-                            isOn: selectedModels.isEmpty || selectedModels.contains(m)
+                HStack(alignment: .top, spacing: 12) {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        LazyHGrid(
+                            rows: [GridItem(.fixed(28), spacing: 6), GridItem(.fixed(28), spacing: 6)],
+                            alignment: .center,
+                            spacing: 6
                         ) {
-                            if selectedModels.contains(m) {
-                                selectedModels.remove(m)
-                            } else {
-                                selectedModels.insert(m)
+                            ForEach(availableModels, id: \.self) { m in
+                                ModelChip(
+                                    title: m,
+                                    color: modelPalette[m] ?? .accentColor,
+                                    isOn: selectedModels.isEmpty || selectedModels.contains(m)
+                                ) {
+                                    if selectedModels.contains(m) {
+                                        selectedModels.remove(m)
+                                    } else {
+                                        selectedModels.insert(m)
+                                    }
+                                }
                             }
                         }
+                        .padding(.vertical, 2)
                     }
+                    .frame(height: 64)
+
                     if !selectedModels.isEmpty {
                         Button("Clear") { selectedModels.removeAll() }
                             .buttonStyle(.link)
+                            .padding(.top, 4)
                     }
-                    Spacer()
                 }
             }
         }
@@ -540,6 +551,9 @@ private struct ModelChip: View {
     let color: Color
     let isOn: Bool
     let action: () -> Void
+
+    @State private var isHovering = false
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
@@ -548,7 +562,7 @@ private struct ModelChip: View {
                     .font(.caption)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .frame(maxWidth: 140, alignment: .leading)
+                    .frame(width: 140, alignment: .leading)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
@@ -557,7 +571,15 @@ private struct ModelChip: View {
             .opacity(isOn ? 1.0 : 0.55)
         }
         .buttonStyle(.plain)
-        .help(title)
+        .popover(isPresented: $isHovering, arrowEdge: .bottom) {
+            Text(title)
+                .font(.caption)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+        }
+        .onHover { hovering in
+            isHovering = hovering
+        }
     }
 }
 
