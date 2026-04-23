@@ -113,10 +113,13 @@ struct SessionsView: View {
         .navigationTitle("Sessions")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                HStack(spacing: 12) {
-                    Toggle("Hide sessions with 0 messages", isOn: $hideZeroMessage)
-                        .toggleStyle(.switch)
-                        .controlSize(.small)
+                HStack(spacing: 8) {
+                    Toggle(isOn: $hideZeroMessage) {
+                        Label("Hide 0-msg", systemImage: hideZeroMessage ? "eye.slash.fill" : "eye.slash")
+                    }
+                    .toggleStyle(.button)
+                    .help("Hide sessions with 0 messages")
+
                     TextField("Search project", text: $searchText)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 220)
