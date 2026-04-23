@@ -168,7 +168,7 @@ struct DashboardView: View {
         switch p {
         case .claudeCode: return .orange
         case .codex: return .green
-        case .openCode: return .purple
+        case .openCode, .zai: return .purple
         default: return .secondary
         }
     }

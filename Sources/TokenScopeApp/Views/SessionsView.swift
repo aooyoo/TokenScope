@@ -26,11 +26,18 @@ struct SessionsView: View {
     @State private var detail: SessionDetail?
     @State private var isLoadingDetail = false
     @State private var searchText = ""
+    @AppStorage("sessions.hideZeroMessage") private var hideZeroMessage = false
 
     private var filteredRows: [SessionRow] {
+        var result = rows
+        if hideZeroMessage {
+            result = result.filter { $0.messageCount > 0 }
+        }
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !q.isEmpty else { return rows }
-        return rows.filter { $0.projectName.localizedCaseInsensitiveContains(q) }
+        if !q.isEmpty {
+            result = result.filter { $0.projectName.localizedCaseInsensitiveContains(q) }
+        }
+        return result
     }
 
     private var sortedRows: [SessionRow] {
@@ -106,9 +113,14 @@ struct SessionsView: View {
         .navigationTitle("Sessions")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                TextField("Search project", text: $searchText)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 220)
+                HStack(spacing: 12) {
+                    Toggle("Hide sessions with 0 messages", isOn: $hideZeroMessage)
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                    TextField("Search project", text: $searchText)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 220)
+                }
             }
         }
         .onAppear { rebuild() }

@@ -2,11 +2,12 @@ import SwiftUI
 import TokenScopeCore
 
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case dashboard, sessions, pricing, backup, settings
+    case dashboard, usage, sessions, pricing, backup, settings
     var id: String { rawValue }
     var title: String {
         switch self {
         case .dashboard: return "Dashboard"
+        case .usage: return "Usage"
         case .sessions: return "Sessions"
         case .pricing: return "Pricing"
         case .backup: return "Backup"
@@ -16,6 +17,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .dashboard: return "chart.bar.xaxis"
+        case .usage: return "gauge.with.dots.needle.33percent"
         case .sessions: return "list.bullet.rectangle"
         case .pricing: return "dollarsign.circle"
         case .backup: return "externaldrive.badge.timemachine"
@@ -37,6 +39,7 @@ struct RootView: View {
         } detail: {
             switch selection ?? .dashboard {
             case .dashboard: DashboardView()
+            case .usage: UsageView()
             case .sessions: SessionsView()
             case .pricing: PricingView()
             case .backup: BackupView()
