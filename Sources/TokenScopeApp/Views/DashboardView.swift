@@ -246,6 +246,12 @@ struct DashboardView: View {
         case .last30Days:
             let start = cal.date(byAdding: .day, value: -29, to: today) ?? today
             range = (start, today)
+        case .last60Days:
+            let start = cal.date(byAdding: .day, value: -59, to: today) ?? today
+            range = (start, today)
+        case .last90Days:
+            let start = cal.date(byAdding: .day, value: -89, to: today) ?? today
+            range = (start, today)
         case .thisYear:
             let interval = cal.dateInterval(of: .year, for: today)
             let start = interval.map { cal.startOfDay(for: $0.start) } ?? today
@@ -447,7 +453,7 @@ private struct ChartContent: View {
 }
 
 private enum DatePreset: CaseIterable {
-    case all, today, yesterday, thisWeek, last7Days, thisMonth, lastMonth, last30Days, thisYear, lastYear
+    case all, today, yesterday, thisWeek, last7Days, thisMonth, lastMonth, last30Days, last60Days, last90Days, thisYear, lastYear
 
     var label: String {
         switch self {
@@ -459,6 +465,8 @@ private enum DatePreset: CaseIterable {
         case .thisMonth: return "This Month"
         case .lastMonth: return "Last Month"
         case .last30Days: return "Last 30 Days"
+        case .last60Days: return "Last 60 Days"
+        case .last90Days: return "Last 90 Days"
         case .thisYear: return "This Year"
         case .lastYear: return "Last Year"
         }
