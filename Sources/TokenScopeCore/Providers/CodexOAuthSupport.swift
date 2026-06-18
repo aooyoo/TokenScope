@@ -39,11 +39,11 @@ public enum CodexOAuthCredentialsError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .notFound:
-            return "Codex auth.json not found. Please sign in first."
+            return CoreL10n.string("Codex auth.json not found. Please sign in first.")
         case let .decodeFailed(message):
-            return "Failed to decode Codex credentials: \(message)"
+            return CoreL10n.string("Failed to decode Codex credentials: %@", message)
         case .missingTokens:
-            return "Codex auth.json exists but contains no usable tokens."
+            return CoreL10n.string("Codex auth.json exists but contains no usable tokens.")
         }
     }
 }
@@ -87,7 +87,7 @@ public enum CodexOAuthCredentialsStore {
 
     public static func parse(data: Data) throws -> CodexOAuthCredentials {
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw CodexOAuthCredentialsError.decodeFailed("Invalid JSON")
+            throw CodexOAuthCredentialsError.decodeFailed(CoreL10n.string("Invalid JSON"))
         }
 
         if let apiKey = json["OPENAI_API_KEY"] as? String,
@@ -179,15 +179,15 @@ public enum CodexTokenRefresher {
         public var errorDescription: String? {
             switch self {
             case .expired:
-                return "Refresh token expired. Please sign in again."
+                return CoreL10n.string("Refresh token expired. Please sign in again.")
             case .revoked:
-                return "Refresh token was revoked. Please sign in again."
+                return CoreL10n.string("Refresh token was revoked. Please sign in again.")
             case .reused:
-                return "Refresh token was already used. Please sign in again."
+                return CoreL10n.string("Refresh token was already used. Please sign in again.")
             case let .networkError(error):
-                return "Network error during token refresh: \(error.localizedDescription)"
+                return CoreL10n.string("Network error during token refresh: %@", error.localizedDescription)
             case let .invalidResponse(message):
-                return "Invalid refresh response: \(message)"
+                return CoreL10n.string("Invalid refresh response: %@", message)
             }
         }
     }
@@ -211,7 +211,7 @@ public enum CodexTokenRefresher {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse else {
-                throw RefreshError.invalidResponse("No HTTP response")
+                throw RefreshError.invalidResponse(CoreL10n.string("No HTTP response"))
             }
             if http.statusCode == 401 {
                 if let errorCode = extractErrorCode(from: data) {
@@ -225,10 +225,10 @@ public enum CodexTokenRefresher {
                 throw RefreshError.expired
             }
             guard http.statusCode == 200 else {
-                throw RefreshError.invalidResponse("Status \(http.statusCode)")
+                throw RefreshError.invalidResponse(CoreL10n.string("Status %d", http.statusCode))
             }
             guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                throw RefreshError.invalidResponse("Invalid JSON")
+                throw RefreshError.invalidResponse(CoreL10n.string("Invalid JSON"))
             }
 
             return CodexOAuthCredentials(
@@ -368,16 +368,16 @@ public enum CodexOAuthFetchError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .unauthorized:
-            return "Codex OAuth token expired or invalid. Please sign in again."
+            return CoreL10n.string("Codex OAuth token expired or invalid. Please sign in again.")
         case .invalidResponse:
-            return "Invalid response from Codex usage API."
+            return CoreL10n.string("Invalid response from Codex usage API.")
         case let .serverError(code, message):
             if let message, !message.isEmpty {
-                return "Codex API error \(code): \(message)"
+                return CoreL10n.string("Codex API error %d: %@", code, message)
             }
-            return "Codex API error \(code)."
+            return CoreL10n.string("Codex API error %d.", code)
         case let .networkError(error):
-            return "Network error: \(error.localizedDescription)"
+            return CoreL10n.string("Network error: %@", error.localizedDescription)
         }
     }
 }
@@ -505,18 +505,18 @@ public enum CodexOAuthSnapshotBuilder {
     public static func build(response: CodexUsageResponse, credentials: CodexOAuthCredentials, updatedAt: Date = Date()) -> CodexOAuthSnapshot {
         let identity = CodexOAuthIdentity.from(credentials: credentials, response: response)
         let windows = [
-            makeWindow(id: "session", title: "Session", snapshot: response.rateLimit?.primaryWindow),
-            makeWindow(id: "weekly", title: "Weekly", snapshot: response.rateLimit?.secondaryWindow),
+            makeWindow(id: "session", title: CoreL10n.string("Session"), snapshot: response.rateLimit?.primaryWindow),
+            makeWindow(id: "weekly", title: CoreL10n.string("Weekly"), snapshot: response.rateLimit?.secondaryWindow),
         ].compactMap { $0 }
 
         let creditsText: String?
         if let credits = response.credits, credits.hasCredits {
             if credits.unlimited {
-                creditsText = "Credits: Unlimited"
+                creditsText = CoreL10n.string("Credits: Unlimited")
             } else if let balance = credits.balance {
-                creditsText = "Credits: \(balance.formatted(.number.precision(.fractionLength(0...2))))"
+                creditsText = CoreL10n.string("Credits: %@", balance.formatted(.number.precision(.fractionLength(0...2))))
             } else {
-                creditsText = "Credits available"
+                creditsText = CoreL10n.string("Credits available")
             }
         } else {
             creditsText = nil

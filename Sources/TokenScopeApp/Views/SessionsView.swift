@@ -46,53 +46,53 @@ struct SessionsView: View {
 
     var body: some View {
         Table(sortedRows, selection: $selectedID, sortOrder: $sortOrder) {
-            TableColumn("Started", value: \.startedAt) { r in
+            TableColumn(L10n.string("Started"), value: \.startedAt) { r in
                 Text(r.startedAt.formatted(date: .abbreviated, time: .shortened))
                     .monospacedDigit()
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { openDetail(for: r) }
             }
-            TableColumn("Provider", value: \.provider) { r in
+            TableColumn(L10n.string("Provider"), value: \.provider) { r in
                 Text(r.provider)
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { openDetail(for: r) }
             }
-            TableColumn("Project", value: \.projectName) { r in
+            TableColumn(L10n.string("Project"), value: \.projectName) { r in
                 Text(r.projectName)
                     .lineLimit(1)
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { openDetail(for: r) }
             }
-            TableColumn("Models", value: \.models) { r in
+            TableColumn(L10n.string("Models"), value: \.models) { r in
                 Text(r.models)
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { openDetail(for: r) }
             }
-            TableColumn("Msgs", value: \.messageCount) { r in
+            TableColumn(L10n.string("Msgs"), value: \.messageCount) { r in
                 Text("\(r.messageCount)")
                     .monospacedDigit()
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { openDetail(for: r) }
             }
-            TableColumn("In", value: \.inputTokens) { r in
-                Text(formatMillions(r.inputTokens))
+            TableColumn(L10n.string("Input"), value: \.inputTokens) { r in
+                Text(formatTokenAmount(r.inputTokens))
                     .monospacedDigit()
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { openDetail(for: r) }
             }
-            TableColumn("Out", value: \.outputTokens) { r in
-                Text(formatMillions(r.outputTokens))
+            TableColumn(L10n.string("Output"), value: \.outputTokens) { r in
+                Text(formatTokenAmount(r.outputTokens))
                     .monospacedDigit()
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { openDetail(for: r) }
             }
-            TableColumn("Cache R", value: \.cacheReadTokens) { r in
-                Text(formatMillions(r.cacheReadTokens))
+            TableColumn(L10n.string("Cache R"), value: \.cacheReadTokens) { r in
+                Text(formatTokenAmount(r.cacheReadTokens))
                     .monospacedDigit()
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { openDetail(for: r) }
             }
-            TableColumn("Cost", value: \.cost) { r in
+            TableColumn(L10n.string("Cost"), value: \.cost) { r in
                 Text(String(format: "$%.4f", r.cost))
                     .monospacedDigit()
                     .contentShape(Rectangle())
@@ -101,7 +101,7 @@ struct SessionsView: View {
         }
         .overlay {
             if isLoadingDetail {
-                ProgressView("Loading session…")
+                ProgressView(L10n.string("Loading session…"))
                     .padding(20)
                     .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
             }
@@ -110,17 +110,17 @@ struct SessionsView: View {
             SessionDetailView(detail: detail)
                 .environmentObject(store)
         }
-        .navigationTitle("Sessions")
+        .navigationTitle(L10n.string("Sessions"))
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
                     Toggle(isOn: $hideZeroMessage) {
-                        Label("Hide 0-msg", systemImage: hideZeroMessage ? "eye.slash.fill" : "eye.slash")
+                        Label(L10n.string("Hide 0-msg"), systemImage: hideZeroMessage ? "eye.slash.fill" : "eye.slash")
                     }
                     .toggleStyle(.button)
-                    .help("Hide sessions with 0 messages")
+                    .help(L10n.string("Hide sessions with 0 messages"))
 
-                    TextField("Search project", text: $searchText)
+                    TextField(L10n.string("Search project"), text: $searchText)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 220)
                 }
@@ -178,10 +178,6 @@ struct SessionsView: View {
     }
 }
 
-private func formatMillions(_ n: Int) -> String {
-    if n == 0 { return "0" }
-    let v = Double(n) / 1_000_000
-    if abs(v) >= 100 { return String(format: "%.0fM", v) }
-    if abs(v) >= 10 { return String(format: "%.1fM", v) }
-    return String(format: "%.2fM", v)
+private func formatTokenAmount(_ n: Int) -> String {
+    TokenDisplayFormatter.hundredMillions(n)
 }

@@ -149,7 +149,7 @@ struct DashboardView: View {
             }
             .padding(24)
         }
-        .navigationTitle("Dashboard")
+        .navigationTitle(L10n.string("Dashboard"))
         .onAppear { recompute() }
         .onChange(of: filterKey) { _, _ in recompute() }
         .onChange(of: includeInput) { _, _ in recompute() }
@@ -161,7 +161,7 @@ struct DashboardView: View {
                 Button {
                     Task { await store.loadAll() }
                 } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
+                    Label(L10n.string("Refresh"), systemImage: "arrow.clockwise")
                 }
                 .disabled(store.isLoading)
             }
@@ -170,12 +170,12 @@ struct DashboardView: View {
 
     private var headerStats: some View {
         HStack(spacing: 16) {
-            StatCard(title: "Sessions", value: "\(store.sessions.count)")
-            StatCard(title: "Total Tokens", value: formatMillions(totals.usage.totalTokens))
-            StatCard(title: "Input", value: formatMillions(totals.usage.inputTokens))
-            StatCard(title: "Output", value: formatMillions(totals.usage.outputTokens))
-            StatCard(title: "Cache R", value: formatMillions(totals.usage.cacheReadTokens))
-            StatCard(title: "Cost (est.)", value: String(format: "$%.2f", totals.costUSD))
+            StatCard(title: L10n.string("Sessions"), value: "\(store.sessions.count)")
+            StatCard(title: L10n.string("Total Tokens"), value: formatTokenAmount(totals.usage.totalTokens))
+            StatCard(title: L10n.string("Input"), value: formatTokenAmount(totals.usage.inputTokens))
+            StatCard(title: L10n.string("Output"), value: formatTokenAmount(totals.usage.outputTokens))
+            StatCard(title: L10n.string("Cache R"), value: formatTokenAmount(totals.usage.cacheReadTokens))
+            StatCard(title: L10n.string("Cost (est.)"), value: String(format: "$%.2f", totals.costUSD))
         }
     }
 
@@ -195,7 +195,7 @@ struct DashboardView: View {
                 )
             }
             if !selectedProviders.isEmpty {
-                Button("Clear") { selectedProviders.removeAll() }
+                Button(L10n.string("Clear")) { selectedProviders.removeAll() }
                     .buttonStyle(.link)
             }
             Spacer()
@@ -277,24 +277,24 @@ struct DashboardView: View {
     private var filters: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
-                DatePicker("From", selection: $startDate, in: ...endDate, displayedComponents: .date)
-                DatePicker("To", selection: $endDate, in: startDate..., displayedComponents: .date)
+                DatePicker(L10n.string("From"), selection: $startDate, in: ...endDate, displayedComponents: .date)
+                DatePicker(L10n.string("To"), selection: $endDate, in: startDate..., displayedComponents: .date)
                 Menu {
                     ForEach(DatePreset.allCases, id: \.self) { p in
                         Button(p.label) { applyPreset(p) }
                     }
                 } label: {
-                    Label("Quick", systemImage: "calendar")
+                    Label(L10n.string("Quick"), systemImage: "calendar")
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
                 Spacer()
             }
             HStack(spacing: 16) {
-                Toggle("Input", isOn: $includeInput)
-                Toggle("Output", isOn: $includeOutput)
-                Toggle("Cache Read", isOn: $includeCacheRead)
-                Toggle("Cache Create", isOn: $includeCacheCreate)
+                Toggle(L10n.string("Input"), isOn: $includeInput)
+                Toggle(L10n.string("Output"), isOn: $includeOutput)
+                Toggle(L10n.string("Cache Read"), isOn: $includeCacheRead)
+                Toggle(L10n.string("Cache Create"), isOn: $includeCacheCreate)
             }
             .toggleStyle(.checkbox)
             if !availableModels.isEmpty {
@@ -324,7 +324,7 @@ struct DashboardView: View {
                     .frame(height: 64)
 
                     if !selectedModels.isEmpty {
-                        Button("Clear") { selectedModels.removeAll() }
+                        Button(L10n.string("Clear")) { selectedModels.removeAll() }
                             .buttonStyle(.link)
                             .padding(.top, 4)
                     }
@@ -356,11 +356,11 @@ struct DashboardView: View {
 
     private var monthlyUsageSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Monthly Usage")
+            Text(L10n.string("Monthly Usage"))
                 .font(.title2).bold()
 
             if monthlyBuckets.isEmpty {
-                Text("No usage in selected range")
+                Text(L10n.string("No usage in selected range"))
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 8)
@@ -401,13 +401,13 @@ private struct ChartContent: View {
         Chart {
             ForEach(buckets) { b in
                 BarMark(
-                    x: .value("Day", b.day, unit: .day),
-                    y: .value("Tokens", displayedTokens(b.usage))
+                    x: .value(L10n.string("Day"), b.day, unit: .day),
+                    y: .value(L10n.string("Tokens"), displayedTokens(b.usage))
                 )
-                .foregroundStyle(by: .value("Model", b.model))
+                .foregroundStyle(by: .value(L10n.string("Model"), b.model))
             }
             if let hoveredDay {
-                RuleMark(x: .value("Day", hoveredDay, unit: .day))
+                RuleMark(x: .value(L10n.string("Day"), hoveredDay, unit: .day))
                     .foregroundStyle(.secondary.opacity(0.25))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
             }
@@ -420,7 +420,7 @@ private struct ChartContent: View {
                 AxisTick()
                 AxisValueLabel {
                     if let n = value.as(Int.self) {
-                        Text(formatMillions(n)).monospacedDigit()
+                        Text(formatTokenAmount(n)).monospacedDigit()
                     }
                 }
             }
@@ -457,28 +457,24 @@ private enum DatePreset: CaseIterable {
 
     var label: String {
         switch self {
-        case .all: return "All"
-        case .today: return "Today"
-        case .yesterday: return "Yesterday"
-        case .thisWeek: return "This Week"
-        case .last7Days: return "Last 7 Days"
-        case .thisMonth: return "This Month"
-        case .lastMonth: return "Last Month"
-        case .last30Days: return "Last 30 Days"
-        case .last60Days: return "Last 60 Days"
-        case .last90Days: return "Last 90 Days"
-        case .thisYear: return "This Year"
-        case .lastYear: return "Last Year"
+        case .all: return L10n.string("All")
+        case .today: return L10n.string("Today")
+        case .yesterday: return L10n.string("Yesterday")
+        case .thisWeek: return L10n.string("This Week")
+        case .last7Days: return L10n.string("Last 7 Days")
+        case .thisMonth: return L10n.string("This Month")
+        case .lastMonth: return L10n.string("Last Month")
+        case .last30Days: return L10n.string("Last 30 Days")
+        case .last60Days: return L10n.string("Last 60 Days")
+        case .last90Days: return L10n.string("Last 90 Days")
+        case .thisYear: return L10n.string("This Year")
+        case .lastYear: return L10n.string("Last Year")
         }
     }
 }
 
-private func formatMillions(_ n: Int) -> String {
-    if n == 0 { return "0" }
-    let v = Double(n) / 1_000_000
-    if abs(v) >= 100 { return String(format: "%.0fM", v) }
-    if abs(v) >= 10 { return String(format: "%.1fM", v) }
-    return String(format: "%.2fM", v)
+private func formatTokenAmount(_ n: Int) -> String {
+    TokenDisplayFormatter.hundredMillions(n)
 }
 
 private struct TooltipView: View {
@@ -497,7 +493,7 @@ private struct TooltipView: View {
                     Circle().fill(palette[b.model] ?? .accentColor).frame(width: 8, height: 8)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(b.model).font(.caption)
-                        Text("\(formatMillions(formatTokens(b.usage))) tok · $\(String(format: "%.4f", b.costUSD))")
+                        Text(L10n.string("%@ · $%@", formatTokenAmount(formatTokens(b.usage)), String(format: "%.4f", b.costUSD)))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -581,10 +577,10 @@ private struct ActivityHeatmapSection: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Activity Heatmap")
+                    Text(L10n.string("Activity Heatmap"))
                         .font(.title2)
                         .bold()
-                    Text("Daily tokens across the selected range")
+                    Text(L10n.string("Daily tokens across the selected range"))
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -667,7 +663,7 @@ private struct ActivityHeatmapSection: View {
             }
 
             HStack(spacing: 6) {
-                Text("Less")
+                Text(L10n.string("Less"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 ForEach(0..<5, id: \.self) { level in
@@ -679,7 +675,7 @@ private struct ActivityHeatmapSection: View {
                                 .stroke(borderColor(for: .legend(level: level)), lineWidth: level == 0 ? 0.5 : 0)
                         }
                 }
-                Text("More")
+                Text(L10n.string("More"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -689,12 +685,17 @@ private struct ActivityHeatmapSection: View {
 
     private var statusText: String {
         if let hoveredCell, hoveredCell.isInSelectedRange {
-            return "\(hoveredCell.day.formatted(date: .abbreviated, time: .omitted)) · \(formatMillions(hoveredCell.tokens)) tok · $\(String(format: "%.2f", hoveredCell.costUSD))"
+            return L10n.string(
+                "%@ · %@ · $%@",
+                hoveredCell.day.formatted(date: .abbreviated, time: .omitted),
+                formatTokenAmount(hoveredCell.tokens),
+                String(format: "%.2f", hoveredCell.costUSD)
+            )
         }
         if model.activeDayCount == 0 {
-            return "No activity in selected range"
+            return L10n.string("No activity in selected range")
         }
-        return "\(model.activeDayCount) active days · peak \(formatMillions(model.peakTokens)) tok"
+        return L10n.string("%d active days · peak %@", model.activeDayCount, formatTokenAmount(model.peakTokens))
     }
 
     private func borderColor(for cell: HeatmapCell) -> Color {
@@ -820,7 +821,12 @@ private struct HeatmapRenderModel {
             let level = cell.isInSelectedRange ? Self.intensityLevel(for: cell.tokens, thresholds: thresholds) : 0
             let tooltip: String
             if cell.isInSelectedRange {
-                tooltip = "\(cell.day.formatted(date: .abbreviated, time: .omitted))\n\(formatMillions(cell.tokens)) tok\n$\(String(format: "%.2f", cell.costUSD))"
+                tooltip = L10n.string(
+                    "%@\n%@\n$%@",
+                    cell.day.formatted(date: .abbreviated, time: .omitted),
+                    formatTokenAmount(cell.tokens),
+                    String(format: "%.2f", cell.costUSD)
+                )
             } else {
                 tooltip = ""
             }
@@ -910,9 +916,9 @@ private struct MonthlyBucketCard: View {
                         .font(.headline)
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(formatMillions(displayedTokens(bucket.usage)))
+                        Text(formatTokenAmount(displayedTokens(bucket.usage)))
                             .font(.body).monospacedDigit()
-                        Text("$\(String(format: "%.2f", bucket.costUSD)) · \(bucket.messageCount) msgs")
+                        Text("$\(String(format: "%.2f", bucket.costUSD)) · \(L10n.string("%d msgs", bucket.messageCount))")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
@@ -954,7 +960,7 @@ private struct MonthlyDayRow: View {
                 .font(.subheadline)
                 .frame(width: 80, alignment: .leading)
             Spacer()
-            Text(formatMillions(displayedTokens(bucket.usage)))
+            Text(formatTokenAmount(displayedTokens(bucket.usage)))
                 .font(.subheadline)
                 .monospacedDigit()
                 .frame(width: 90, alignment: .trailing)
@@ -1040,7 +1046,7 @@ private struct SourceCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(.caption).foregroundStyle(.secondary)
                     HStack(spacing: 8) {
-                        Text(formatMillions(tokens)).font(.callout).monospacedDigit()
+                        Text(formatTokenAmount(tokens)).font(.callout).monospacedDigit()
                         Text(String(format: "$%.2f", cost))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
