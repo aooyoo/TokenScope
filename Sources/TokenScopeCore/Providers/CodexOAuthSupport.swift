@@ -319,6 +319,11 @@ public struct CodexUsageResponse: Decodable, Sendable {
     public struct RateLimitDetails: Decodable, Sendable {
         public let primaryWindow: WindowSnapshot?
         public let secondaryWindow: WindowSnapshot?
+
+        enum CodingKeys: String, CodingKey {
+            case primaryWindow = "primary_window"
+            case secondaryWindow = "secondary_window"
+        }
     }
 
     public struct WindowSnapshot: Decodable, Sendable {
