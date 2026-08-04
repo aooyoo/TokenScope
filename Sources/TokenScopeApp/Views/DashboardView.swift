@@ -474,7 +474,7 @@ private enum DatePreset: CaseIterable {
 }
 
 private func formatTokenAmount(_ n: Int) -> String {
-    TokenDisplayFormatter.hundredMillions(n)
+    TokenDisplayFormatter.localized(n)
 }
 
 private struct TooltipView: View {

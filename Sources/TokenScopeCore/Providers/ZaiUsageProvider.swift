@@ -282,10 +282,10 @@ private struct ZaiLimitEntry: Sendable {
 
     private static func mcpDisplayName(for modelCode: String) -> String {
         switch modelCode {
-        case "search-prime": return "联网搜索"
-        case "web-reader": return "网页读取"
-        case "zread", "open-source-repo": return "开源仓库"
-        case "vision": return "视觉理解"
+        case "search-prime": return CoreL10n.string("Web search")
+        case "web-reader": return CoreL10n.string("Web reader")
+        case "zread", "open-source-repo": return CoreL10n.string("Open-source repository")
+        case "vision": return CoreL10n.string("Vision")
         default: return modelCode
         }
     }
@@ -351,13 +351,14 @@ private struct ZaiUsageSnapshot: Sendable {
 
     private func makeMCPWindow(id: String, limit: ZaiLimitEntry?) -> UsageWindowSnapshot? {
         guard let limit else { return nil }
-        let resetDescription = limit.mcpDetailSummary ?? (limit.nextResetTime == nil ? "月度 MCP 配额" : nil)
+        let resetDescription = limit.mcpDetailSummary
+            ?? (limit.nextResetTime == nil ? CoreL10n.string("Monthly MCP quota") : nil)
         return UsageWindowSnapshot(
             id: id,
-            title: "MCP 调用 (月度)",
+            title: CoreL10n.string("MCP calls (monthly)"),
             usedValue: resolvedUsedValue(for: limit),
             limitValue: limit.usage,
-            unitLabel: "次",
+            unitLabel: CoreL10n.string("calls"),
             usedPercent: limit.usedPercent,
             resetsAt: limit.nextResetTime,
             resetDescription: resetDescription

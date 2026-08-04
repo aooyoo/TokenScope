@@ -46,5 +46,6 @@ struct RootView: View {
             case .settings: SettingsView()
             }
         }
+        .id(store.language)
     }
 }

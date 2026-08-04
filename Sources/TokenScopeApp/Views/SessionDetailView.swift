@@ -134,5 +134,5 @@ private struct SessionMessageCard: View {
 }
 
 private func formatTokenAmount(_ n: Int) -> String {
-    TokenDisplayFormatter.hundredMillions(n)
+    TokenDisplayFormatter.localized(n)
 }

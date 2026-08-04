@@ -31,6 +31,15 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section(L10n.string("General")) {
+                Picker(L10n.string("Language"), selection: $store.language) {
+                    ForEach(AppLanguage.allCases, id: \.self) { language in
+                        Text(language.displayName).tag(language)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+
             Section(L10n.string("About")) {
                 LabeledContent(L10n.string("Version"), value: TokenScopeCore.version)
             }

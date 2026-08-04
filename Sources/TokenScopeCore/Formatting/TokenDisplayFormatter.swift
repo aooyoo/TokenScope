@@ -1,6 +1,30 @@
 import Foundation
 
 public enum TokenDisplayFormatter {
+    public static func localized(_ value: Int, language: AppLanguage = .current) -> String {
+        switch language {
+        case .english:
+            return millions(value)
+        case .simplifiedChinese:
+            return hundredMillions(value)
+        }
+    }
+
+    public static func millions(_ value: Int) -> String {
+        guard value != 0 else { return "0" }
+
+        let scaled = Double(value) / 1_000_000
+        let magnitude = abs(scaled)
+
+        if magnitude >= 100 {
+            return String(format: "%.0fM", scaled)
+        }
+        if magnitude >= 10 {
+            return String(format: "%.1fM", scaled)
+        }
+        return String(format: "%.2fM", scaled)
+    }
+
     public static func hundredMillions(_ value: Int) -> String {
         guard value != 0 else { return "0" }
 

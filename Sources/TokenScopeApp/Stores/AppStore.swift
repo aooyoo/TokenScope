@@ -4,6 +4,14 @@ import TokenScopeCore
 
 @MainActor
 final class AppStore: ObservableObject {
+    @Published var language: AppLanguage {
+        didSet {
+            AppLanguage.current = language
+            providerUsageSnapshots = [:]
+            usageRefreshStates = [:]
+            usageErrors = [:]
+        }
+    }
     @Published private(set) var sessions: [SessionRecord] = []
     @Published private(set) var usageRecords: [UsageRecord] = []
     @Published private(set) var isLoading = false
@@ -22,6 +30,10 @@ final class AppStore: ObservableObject {
     lazy var aggregator = UsageAggregator(priceBook: priceBook)
 
     @Published var pricesRevision: Int = 0
+
+    init() {
+        self.language = AppLanguage.current
+    }
 
     func upsertPrice(_ price: ModelPrice) {
         priceBook.upsert(price)
@@ -99,6 +111,7 @@ final class AppStore: ObservableObject {
     }
 
     func refreshUsage(for provider: Provider) async {
+        let refreshLanguage = language
         usageRefreshStates[provider] = .loading
         usageErrors[provider] = nil
 
@@ -126,11 +139,13 @@ final class AppStore: ObservableObject {
                 )
             }
 
+            guard language == refreshLanguage else { return }
             providerUsageSnapshots[provider] = snapshot
             usageRefreshStates[provider] = .loaded
             usageErrors[provider] = nil
             providerUsageCache.save(snapshots: providerUsageSnapshots.values.sorted { $0.provider.rawValue < $1.provider.rawValue })
         } catch {
+            guard language == refreshLanguage else { return }
             usageRefreshStates[provider] = .failed
             usageErrors[provider] = error.localizedDescription
         }

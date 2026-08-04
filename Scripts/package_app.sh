@@ -68,9 +68,23 @@ cp "$BUILT_BIN" "$APP_DIR/Contents/MacOS/$APP_NAME"
 chmod +x "$APP_DIR/Contents/MacOS/$APP_NAME"
 
 RESOURCE_DIR="$(dirname "$BUILT_BIN")"
+RESOURCE_BUNDLE_COUNT=0
 for RESOURCE_BUNDLE in "$RESOURCE_DIR"/TokenScope_*.bundle; do
     if [ -d "$RESOURCE_BUNDLE" ]; then
         cp -R "$RESOURCE_BUNDLE" "$APP_DIR/Contents/Resources/"
+        RESOURCE_BUNDLE_COUNT=$((RESOURCE_BUNDLE_COUNT + 1))
+    fi
+done
+
+if [ "$RESOURCE_BUNDLE_COUNT" -eq 0 ]; then
+    echo "No SwiftPM resource bundles found in $RESOURCE_DIR" >&2
+    exit 1
+fi
+
+for REQUIRED_BUNDLE in TokenScope_TokenScopeApp.bundle TokenScope_TokenScopeCore.bundle; do
+    if [ ! -f "$APP_DIR/Contents/Resources/$REQUIRED_BUNDLE/Info.plist" ]; then
+        echo "Required resource bundle missing from app resources: $REQUIRED_BUNDLE" >&2
+        exit 1
     fi
 done
 

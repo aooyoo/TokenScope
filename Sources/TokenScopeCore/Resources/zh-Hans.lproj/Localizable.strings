@@ -55,3 +55,10 @@
 "Unknown error" = "未知错误";
 "Empty response body (HTTP 200). Check z.ai region and API key." = "响应体为空（HTTP 200）。请检查 z.ai 区域和 API Key。";
 "Missing data" = "缺少 data 字段";
+"Web search" = "联网搜索";
+"Web reader" = "网页读取";
+"Open-source repository" = "开源仓库";
+"Vision" = "视觉理解";
+"Monthly MCP quota" = "月度 MCP 配额";
+"MCP calls (monthly)" = "MCP 调用（月度）";
+"calls" = "次";

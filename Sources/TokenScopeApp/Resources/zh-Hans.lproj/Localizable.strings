@@ -13,6 +13,8 @@
 "Close" = "关闭";
 "About" = "关于";
 "Version" = "版本";
+"General" = "通用";
+"Language" = "语言";
 "Provider Usage" = "服务用量";
 "Last updated: %@" = "最后更新：%@";
 "Usage Providers" = "用量服务";

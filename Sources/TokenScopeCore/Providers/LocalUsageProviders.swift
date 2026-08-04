@@ -188,6 +188,6 @@ public struct CodexUsageProvider: UsageStatsProvider {
     }
 
     private func tokenCount(_ value: Int) -> String {
-        CoreL10n.string("%@ tokens", TokenDisplayFormatter.hundredMillions(value))
+        CoreL10n.string("%@ tokens", TokenDisplayFormatter.localized(value))
     }
 }

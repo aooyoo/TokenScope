@@ -1,15 +1,22 @@
 import Foundation
 
 public struct ProviderUsageCacheSnapshot: Codable, Sendable {
-    public static let currentVersion = 1
+    public static let currentVersion = 2
 
     public let version: Int
     public let updatedAt: Date
+    public let languageCode: String
     public let snapshots: [ProviderUsageSnapshot]
 
-    public init(version: Int = currentVersion, updatedAt: Date, snapshots: [ProviderUsageSnapshot]) {
+    public init(
+        version: Int = currentVersion,
+        updatedAt: Date,
+        languageCode: String = AppLanguage.current.rawValue,
+        snapshots: [ProviderUsageSnapshot]
+    ) {
         self.version = version
         self.updatedAt = updatedAt
+        self.languageCode = languageCode
         self.snapshots = snapshots
     }
 }
@@ -35,7 +42,8 @@ public final class ProviderUsageCache: @unchecked Sendable {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         guard let snapshot = try? decoder.decode(ProviderUsageCacheSnapshot.self, from: data),
-              snapshot.version == ProviderUsageCacheSnapshot.currentVersion else {
+              snapshot.version == ProviderUsageCacheSnapshot.currentVersion,
+              snapshot.languageCode == AppLanguage.current.rawValue else {
             return nil
         }
         return snapshot

@@ -9,6 +9,7 @@ struct TokenScopeApp: App {
         WindowGroup("TokenScope") {
             RootView()
                 .environmentObject(store)
+                .environment(\.locale, store.language.locale)
                 .frame(minWidth: 1000, minHeight: 640)
                 .task {
                     store.loadCached()
