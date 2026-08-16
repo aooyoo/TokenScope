@@ -62,8 +62,8 @@ struct UsageView: View {
         }
         .navigationTitle(L10n.string("Usage"))
         .task {
-            if store.providerUsageSnapshots.isEmpty {
-                await store.refreshUsage()
+            for provider in providers where store.providerUsageSnapshots[provider] == nil {
+                await store.refreshUsage(for: provider)
             }
         }
         .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { _ in
@@ -240,6 +240,8 @@ private struct UsageProviderCard: View {
             return .orange
         case .codex:
             return Color(red: 0.165, green: 0.616, blue: 0.561)
+        case .workBuddy:
+            return .blue
         case .zai:
             return .purple
         default:
@@ -251,7 +253,7 @@ private struct UsageProviderCard: View {
         switch provider {
         case .zai:
             return L10n.string("Configure a z.ai API key in Settings to load usage.")
-        case .claudeCode, .codex:
+        case .claudeCode, .codex, .workBuddy:
             return L10n.string("No usage data available yet.")
         default:
             return L10n.string("No usage data available.")

@@ -65,11 +65,19 @@ final class AppStore: ObservableObject {
             let claude = ClaudeCodeScanner().scan()
             let codex = CodexScanner().scan()
             let opencode = OpenCodeScanner().scan()
-            let sessions: [SessionRecord] = claude.map(\.session) + codex.map(\.session) + opencode.map(\.session)
+            let workBuddy = WorkBuddyScanner().scan()
+            let deepSeekHarness = DeepSeekHarnessScanner().scan()
+            let sessions: [SessionRecord] = claude.map(\.session)
+                + codex.map(\.session)
+                + opencode.map(\.session)
+                + workBuddy.map(\.session)
+                + deepSeekHarness.map(\.session)
             var records: [UsageRecord] = []
             records.append(contentsOf: claude.flatMap(\.usageRecords))
             records.append(contentsOf: codex.flatMap(\.usageRecords))
             records.append(contentsOf: opencode.flatMap(\.usageRecords))
+            records.append(contentsOf: workBuddy.flatMap(\.usageRecords))
+            records.append(contentsOf: deepSeekHarness.flatMap(\.usageRecords))
             return (sessions, records)
         }.value
 
@@ -105,7 +113,7 @@ final class AppStore: ObservableObject {
     }
 
     func refreshUsage() async {
-        for provider in [Provider.claudeCode, .codex, .zai] {
+        for provider in [Provider.claudeCode, .codex, .workBuddy, .zai] {
             await refreshUsage(for: provider)
         }
     }
@@ -128,6 +136,8 @@ final class AppStore: ObservableObject {
                     accounts: usageSettings.codexAccounts,
                     activeSource: usageSettings.codexActiveSource
                 ).fetchSnapshot()
+            case .workBuddy:
+                snapshot = try await WorkBuddyUsageProvider(sessions: sessions).fetchSnapshot()
             case .zai:
                 let apiKey = usageSettings.loadZaiAPIKey()
                 snapshot = try await ZaiUsageProvider(apiKey: apiKey, region: usageSettings.zaiRegion).fetchSnapshot()

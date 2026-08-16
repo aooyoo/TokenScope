@@ -63,6 +63,69 @@ public struct ClaudeCodeUsageProvider: UsageStatsProvider {
     }
 }
 
+public struct WorkBuddyUsageProvider: UsageStatsProvider {
+    public let provider: Provider = .workBuddy
+    private let sessions: [SessionRecord]
+
+    public init(sessions: [SessionRecord]) {
+        self.sessions = sessions.filter { $0.provider == .workBuddy }
+    }
+
+    public func fetchSnapshot() async throws -> ProviderUsageSnapshot {
+        let scoped = sessions.sorted { $0.startedAt > $1.startedAt }
+        let latest = scoped.first
+        let totalUsage = scoped.reduce(TokenUsage.zero) { $0 + $1.totalUsage }
+        let weekSessions = scoped.filter {
+            $0.startedAt >= Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+        }
+        let weekUsage = weekSessions.reduce(TokenUsage.zero) { $0 + $1.totalUsage }
+        let latestUsage = latest?.totalUsage ?? .zero
+
+        let windows = [
+            UsageWindowSnapshot(
+                id: "all-time",
+                title: CoreL10n.string("All sessions"),
+                usedValue: totalUsage.totalTokens,
+                limitValue: nil,
+                unitLabel: CoreL10n.string("tokens"),
+                usedPercent: 0,
+                resetsAt: nil,
+                resetDescription: CoreL10n.string("Local history")
+            ),
+            UsageWindowSnapshot(
+                id: "last-7d",
+                title: CoreL10n.string("Last 7 days"),
+                usedValue: weekUsage.totalTokens,
+                limitValue: nil,
+                unitLabel: CoreL10n.string("tokens"),
+                usedPercent: 0,
+                resetsAt: nil,
+                resetDescription: CoreL10n.string("Rolling")
+            ),
+            UsageWindowSnapshot(
+                id: "latest-session",
+                title: CoreL10n.string("Latest session"),
+                usedValue: latestUsage.totalTokens,
+                limitValue: nil,
+                unitLabel: CoreL10n.string("tokens"),
+                usedPercent: 0,
+                resetsAt: latest?.endedAt,
+                resetDescription: latest.map { $0.endedAt.formatted(date: .abbreviated, time: .shortened) }
+            )
+        ]
+
+        return ProviderUsageSnapshot(
+            provider: .workBuddy,
+            updatedAt: Date(),
+            sourceLabel: CoreL10n.string("Local sessions"),
+            identitySummary: latest?.projectPath?.components(separatedBy: "/").last,
+            planName: nil,
+            windows: windows,
+            notice: scoped.isEmpty ? CoreL10n.string("No WorkBuddy sessions found.") : nil
+        )
+    }
+}
+
 public struct CodexUsageProvider: UsageStatsProvider {
     public let provider: Provider = .codex
 

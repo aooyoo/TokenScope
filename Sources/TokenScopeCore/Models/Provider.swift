@@ -4,6 +4,8 @@ public enum Provider: String, Codable, CaseIterable, Sendable, Hashable {
     case claudeCode = "claude_code"
     case codex = "codex"
     case openCode = "opencode"
+    case workBuddy = "workbuddy"
+    case deepSeekHarness = "deepseek_harness"
     case zai = "zai"
     case glmPlan = "glm_plan"
     case openAIAPI = "openai_api"
@@ -12,7 +14,7 @@ public enum Provider: String, Codable, CaseIterable, Sendable, Hashable {
 
     public var isSubscriptionPlan: Bool {
         switch self {
-        case .claudeCode, .codex, .openCode, .glmPlan: return true
+        case .claudeCode, .codex, .openCode, .workBuddy, .deepSeekHarness, .glmPlan: return true
         case .zai, .openAIAPI, .anthropicAPI, .glmAPI: return false
         }
     }
@@ -22,6 +24,8 @@ public enum Provider: String, Codable, CaseIterable, Sendable, Hashable {
         case .claudeCode: return "Claude Code"
         case .codex: return "Codex"
         case .openCode: return "OpenCode"
+        case .workBuddy: return "WorkBuddy"
+        case .deepSeekHarness: return "DeepSeek Harness"
         case .zai: return "z.ai"
         case .glmPlan: return "GLM Coding Plan"
         case .openAIAPI: return "OpenAI API"

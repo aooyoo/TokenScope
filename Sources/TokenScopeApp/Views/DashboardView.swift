@@ -180,25 +180,26 @@ struct DashboardView: View {
     }
 
     private var sourceBreakdownView: some View {
-        let sources: [Provider] = [.claudeCode, .codex, .openCode]
-        return HStack(spacing: 12) {
-            ForEach(sources, id: \.self) { p in
-                let entry = sourceTotals[p]
-                SourceCard(
-                    title: p.displayName,
-                    tokens: displayedTokens(for: entry?.usage ?? .zero),
-                    cost: entry?.cost ?? 0,
-                    color: sourceColor(p),
-                    isSelected: selectedProviders.isEmpty || selectedProviders.contains(p),
-                    hasFilter: !selectedProviders.isEmpty,
-                    action: { toggleProvider(p) }
-                )
+        let sources: [Provider] = [.claudeCode, .codex, .openCode, .workBuddy, .deepSeekHarness]
+        return VStack(alignment: .leading, spacing: 8) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], alignment: .leading, spacing: 12) {
+                ForEach(sources, id: \.self) { p in
+                    let entry = sourceTotals[p]
+                    SourceCard(
+                        title: p.displayName,
+                        tokens: displayedTokens(for: entry?.usage ?? .zero),
+                        cost: entry?.cost ?? 0,
+                        color: sourceColor(p),
+                        isSelected: selectedProviders.isEmpty || selectedProviders.contains(p),
+                        hasFilter: !selectedProviders.isEmpty,
+                        action: { toggleProvider(p) }
+                    )
+                }
             }
             if !selectedProviders.isEmpty {
                 Button(L10n.string("Clear")) { selectedProviders.removeAll() }
                     .buttonStyle(.link)
             }
-            Spacer()
         }
     }
 
@@ -206,6 +207,8 @@ struct DashboardView: View {
         switch p {
         case .claudeCode: return .orange
         case .codex: return .green
+        case .workBuddy: return .blue
+        case .deepSeekHarness: return .red
         case .openCode, .zai: return .purple
         default: return .secondary
         }

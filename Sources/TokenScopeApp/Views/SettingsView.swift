@@ -23,6 +23,14 @@ struct SettingsView: View {
         home.appendingPathComponent(".local/share/opencode/storage", isDirectory: true)
     }
 
+    private var workBuddyDataDir: URL {
+        home.appendingPathComponent(".workbuddy/projects", isDirectory: true)
+    }
+
+    private var deepSeekHarnessDataDir: URL {
+        home.appendingPathComponent(".dsh", isDirectory: true)
+    }
+
     private var localCacheDir: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? home.appendingPathComponent("Library/Application Support", isDirectory: true)
@@ -62,6 +70,7 @@ struct SettingsView: View {
                     Button(L10n.string("Save")) { saveZaiAPIKey() }
                 }
                 LabeledContent("Claude Code", value: providerStatusText(.claudeCode))
+                LabeledContent("WorkBuddy", value: providerStatusText(.workBuddy))
                 VStack(alignment: .leading, spacing: 10) {
                     LabeledContent("Codex", value: providerStatusText(.codex))
                     HStack {
@@ -95,6 +104,8 @@ struct SettingsView: View {
                 SettingsPathRow(title: L10n.string("Claude Code data dir"), url: claudeDataDir)
                 SettingsPathRow(title: L10n.string("Codex data dir"), url: codexDataDir)
                 SettingsPathRow(title: L10n.string("OpenCode data dir"), url: openCodeDataDir)
+                SettingsPathRow(title: L10n.string("WorkBuddy data dir"), url: workBuddyDataDir)
+                SettingsPathRow(title: L10n.string("DeepSeek Harness data dir"), url: deepSeekHarnessDataDir)
                 SettingsPathRow(title: L10n.string("Local cache dir"), url: localCacheDir)
             }
         }

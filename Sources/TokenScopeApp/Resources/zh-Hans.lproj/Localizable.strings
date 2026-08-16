@@ -124,6 +124,8 @@
 "Claude Code data dir" = "Claude Code 数据目录";
 "Codex data dir" = "Codex 数据目录";
 "OpenCode data dir" = "OpenCode 数据目录";
+"WorkBuddy data dir" = "WorkBuddy 数据目录";
+"DeepSeek Harness data dir" = "DeepSeek Harness 数据目录";
 "Local cache dir" = "本地缓存目录";
 "Backup (coming in P2)" = "备份（P2 推出）";
 "Incremental backup of Claude Code and Codex sessions keyed by session id." = "按会话 ID 增量备份 Claude Code 和 Codex 会话。";
