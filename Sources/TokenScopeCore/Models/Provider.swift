@@ -11,11 +11,15 @@ public enum Provider: String, Codable, CaseIterable, Sendable, Hashable {
     case openAIAPI = "openai_api"
     case anthropicAPI = "anthropic_api"
     case glmAPI = "glm_api"
+    case moonshotAPI = "moonshot_api"
+    case miniMaxAPI = "minimax_api"
+    case tencentTokenHub = "tencent_tokenhub"
 
     public var isSubscriptionPlan: Bool {
         switch self {
         case .claudeCode, .codex, .openCode, .workBuddy, .deepSeekHarness, .glmPlan: return true
-        case .zai, .openAIAPI, .anthropicAPI, .glmAPI: return false
+        case .zai, .openAIAPI, .anthropicAPI, .glmAPI,
+             .moonshotAPI, .miniMaxAPI, .tencentTokenHub: return false
         }
     }
 
@@ -31,6 +35,9 @@ public enum Provider: String, Codable, CaseIterable, Sendable, Hashable {
         case .openAIAPI: return "OpenAI API"
         case .anthropicAPI: return "Anthropic API"
         case .glmAPI: return "GLM API"
+        case .moonshotAPI: return "Moonshot API"
+        case .miniMaxAPI: return "MiniMax API"
+        case .tencentTokenHub: return "Tencent TokenHub"
         }
     }
 }
