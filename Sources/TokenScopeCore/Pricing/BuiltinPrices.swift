@@ -2,8 +2,34 @@ import Foundation
 
 public enum BuiltinPrices {
     public static let all: [ModelPrice] = [
-        // Public list prices as of August 2026, USD per 1M tokens.
+        // Public standard short-context prices as of October 23, 2026, USD per 1M tokens.
+        // Cache creation uses the shortest published write duration when multiple durations exist.
         // Anthropic Claude
+        ModelPrice(
+            provider: .anthropicAPI, model: "claude-fable-5-1",
+            inputPerMillion: 10.0, outputPerMillion: 50.0,
+            cacheReadPerMillion: 0.25, cacheCreationPerMillion: 12.5
+        ),
+        ModelPrice(
+            provider: .anthropicAPI, model: "claude-mythos-5-1",
+            inputPerMillion: 10.0, outputPerMillion: 50.0,
+            cacheReadPerMillion: 0.25, cacheCreationPerMillion: 12.5
+        ),
+        ModelPrice(
+            provider: .anthropicAPI, model: "claude-opus-5-5",
+            inputPerMillion: 4.0, outputPerMillion: 20.0,
+            cacheReadPerMillion: 0.2, cacheCreationPerMillion: 5.0
+        ),
+        ModelPrice(
+            provider: .anthropicAPI, model: "claude-sonnet-5-5",
+            inputPerMillion: 2.0, outputPerMillion: 10.0,
+            cacheReadPerMillion: 0.1, cacheCreationPerMillion: 2.5
+        ),
+        ModelPrice(
+            provider: .anthropicAPI, model: "claude-haiku-5-5",
+            inputPerMillion: 0.1, outputPerMillion: 0.5,
+            cacheReadPerMillion: 0.01, cacheCreationPerMillion: 0.125
+        ),
         ModelPrice(
             provider: .anthropicAPI, model: "claude-fable-5",
             inputPerMillion: 10.0, outputPerMillion: 50.0,
@@ -69,7 +95,7 @@ public enum BuiltinPrices {
             inputPerMillion: 1.0, outputPerMillion: 5.0,
             cacheReadPerMillion: 0.1, cacheCreationPerMillion: 1.25
         ),
-        // OpenAI GPT-5 family
+        // OpenAI GPT families and specialized models
         ModelPrice(
             provider: .openAIAPI, model: "gpt-5",
             inputPerMillion: 1.25, outputPerMillion: 10.0,
@@ -122,13 +148,13 @@ public enum BuiltinPrices {
         ),
         ModelPrice(
             provider: .openAIAPI, model: "gpt-5.6",
-            inputPerMillion: 5.0, outputPerMillion: 30.0,
-            cacheReadPerMillion: 0.5, cacheCreationPerMillion: 6.25
+            inputPerMillion: 4.0, outputPerMillion: 20.0,
+            cacheReadPerMillion: 0.4, cacheCreationPerMillion: 5.0
         ),
         ModelPrice(
             provider: .openAIAPI, model: "gpt-5.6-sol",
-            inputPerMillion: 5.0, outputPerMillion: 30.0,
-            cacheReadPerMillion: 0.5, cacheCreationPerMillion: 6.25
+            inputPerMillion: 4.0, outputPerMillion: 20.0,
+            cacheReadPerMillion: 0.4, cacheCreationPerMillion: 5.0
         ),
         ModelPrice(
             provider: .openAIAPI, model: "gpt-5.6-terra",
@@ -139,6 +165,41 @@ public enum BuiltinPrices {
             provider: .openAIAPI, model: "gpt-5.6-luna",
             inputPerMillion: 0.2, outputPerMillion: 1.2,
             cacheReadPerMillion: 0.02, cacheCreationPerMillion: 0.25
+        ),
+        ModelPrice(
+            provider: .openAIAPI, model: "gpt-5.6-cyber",
+            inputPerMillion: 12.5, outputPerMillion: 75.0,
+            cacheReadPerMillion: 1.25, cacheCreationPerMillion: 15.625
+        ),
+        ModelPrice(
+            provider: .openAIAPI, model: "gpt-6-astra",
+            inputPerMillion: 10.0, outputPerMillion: 50.0,
+            cacheReadPerMillion: 1.0, cacheCreationPerMillion: 12.5
+        ),
+        ModelPrice(
+            provider: .openAIAPI, model: "gpt-6-sol",
+            inputPerMillion: 2.0, outputPerMillion: 10.0,
+            cacheReadPerMillion: 0.2, cacheCreationPerMillion: 2.5
+        ),
+        ModelPrice(
+            provider: .openAIAPI, model: "gpt-6.1-sol",
+            inputPerMillion: 2.0, outputPerMillion: 10.0,
+            cacheReadPerMillion: 0.1, cacheCreationPerMillion: 2.5
+        ),
+        ModelPrice(
+            provider: .openAIAPI, model: "gpt-6-luna",
+            inputPerMillion: 0.1, outputPerMillion: 0.5,
+            cacheReadPerMillion: 0.01, cacheCreationPerMillion: 0.125
+        ),
+        ModelPrice(
+            provider: .openAIAPI, model: "gpt-rosalind-research",
+            inputPerMillion: 5.0, outputPerMillion: 25.0,
+            cacheReadPerMillion: 0.5, cacheCreationPerMillion: 0.0
+        ),
+        ModelPrice(
+            provider: .openAIAPI, model: "gpt-rosalind-discovery",
+            inputPerMillion: 5.0, outputPerMillion: 25.0,
+            cacheReadPerMillion: 0.5, cacheCreationPerMillion: 0.0
         ),
         // GLM
         ModelPrice(
@@ -181,6 +242,26 @@ public enum BuiltinPrices {
             inputPerMillion: 1.2, outputPerMillion: 4.0,
             cacheReadPerMillion: 0.24, cacheCreationPerMillion: 0.0
         ),
+        ModelPrice(
+            provider: .glmAPI, model: "glm-5.3",
+            inputPerMillion: 1.4, outputPerMillion: 4.4,
+            cacheReadPerMillion: 0.26, cacheCreationPerMillion: 0.0
+        ),
+        ModelPrice(
+            provider: .glmAPI, model: "glm-5.3-flash",
+            inputPerMillion: 0.15, outputPerMillion: 0.5,
+            cacheReadPerMillion: 0.03, cacheCreationPerMillion: 0.0
+        ),
+        ModelPrice(
+            provider: .glmAPI, model: "glm-5.3-flashx",
+            inputPerMillion: 0.37, outputPerMillion: 1.25,
+            cacheReadPerMillion: 0.075, cacheCreationPerMillion: 0.0
+        ),
+        ModelPrice(
+            provider: .glmAPI, model: "glm-5.3-flashx-legal",
+            inputPerMillion: 0.37, outputPerMillion: 1.25,
+            cacheReadPerMillion: 0.075, cacheCreationPerMillion: 0.0
+        ),
         // Moonshot Kimi
         ModelPrice(
             provider: .moonshotAPI, model: "kimi-k2.6",
@@ -200,7 +281,7 @@ public enum BuiltinPrices {
         ModelPrice(
             provider: .moonshotAPI, model: "kimi-k3",
             inputPerMillion: 3.0, outputPerMillion: 15.0,
-            cacheReadPerMillion: 0.3, cacheCreationPerMillion: 0.0
+            cacheReadPerMillion: 0.3, cacheCreationPerMillion: 3.0
         ),
         // MiniMax
         ModelPrice(
@@ -213,6 +294,11 @@ public enum BuiltinPrices {
             provider: .tencentTokenHub, model: "hy3",
             inputPerMillion: 0.132, outputPerMillion: 0.528,
             cacheReadPerMillion: 0.033, cacheCreationPerMillion: 0.0
+        ),
+        ModelPrice(
+            provider: .tencentTokenHub, model: "hy4-preview",
+            inputPerMillion: 0.834, outputPerMillion: 2.501,
+            cacheReadPerMillion: 0.042, cacheCreationPerMillion: 0.0
         ),
     ]
 

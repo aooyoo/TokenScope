@@ -187,6 +187,66 @@ final class DeepSeekHarnessParserTests: XCTestCase {
         XCTAssertEqual(result.usageRecords.map(\.model), ["glm-5.3", "k3"])
     }
 
+    func testScannerReadsVersionedTranscriptsOncePerSession() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dsh-versions-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        for (id, version, model) in [
+            ("migrated", 3, "deepseek-v4-flash"),
+            ("migrated", 4, "deepseek-flash"),
+            ("older", 3, "deepseek-pro"),
+        ] {
+            let directory = root.appendingPathComponent("sessions/project/\(id)", isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let transcript = """
+            {"type":"session","id":"\(id)","version":\(version),"createdAt":1794188000000}
+            {"type":"assistant/message","time":1794188022320,"data":{"message":{"source":{"model":"\(model)"}},"usage":{"inputTokens":8,"outputTokens":3,"cacheReadTokens":32,"cacheWriteTokens":1}}}
+
+            """
+            try compressFrame(Data(transcript.utf8)).write(to: directory.appendingPathComponent("session.v\(version).jsonl.zstd"))
+        }
+
+        let results = DeepSeekHarnessScanner(root: root).scan()
+        XCTAssertEqual(results.count, 2)
+        let migrated = try XCTUnwrap(results.first { $0.session.id == "migrated" })
+        XCTAssertEqual(migrated.session.sourceFile.lastPathComponent, "session.v4.jsonl.zstd")
+        XCTAssertEqual(migrated.session.totalUsage.totalTokens, 44)
+        XCTAssertEqual(migrated.usageRecords.map(\.model), ["deepseek-flash"])
+        XCTAssertEqual(migrated.usageRecords.first?.timestamp, Date(timeIntervalSince1970: 1_794_188_022.320))
+        XCTAssertEqual(results.first { $0.session.id == "older" }?.usageRecords.map(\.model), ["deepseek-pro"])
+    }
+
+    func testScannerFallsBackToPerSessionProjectionWhenTranscriptIsUnreadable() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dsh-projection-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let projections = root.appendingPathComponent("storages/session_projcache/sessions", isDirectory: true)
+        let transcript = root.appendingPathComponent("sessions/project/session-recovered", isDirectory: true)
+        try FileManager.default.createDirectory(at: projections, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: transcript, withIntermediateDirectories: true)
+        try Data("incomplete frame".utf8).write(to: transcript.appendingPathComponent("session.v4.jsonl.zstd"))
+
+        let projection = #"""
+        {"version":7,"record":{"identity":{"createdAt":1794188000000},"rows":{
+          "sessionStats":{"val":{"steps":2}},
+          "sessionListMetadata":{"val":{"lastPromptAt":1794188020000}},
+          "tokenUsage":{"val":{"totals":{"uncachedInputTokens":15,"outputTokens":4,"cacheReadTokens":25,"cacheWriteTokens":6}}}
+        }}}
+        """#
+        try projection.write(to: projections.appendingPathComponent("session-recovered.json"), atomically: true, encoding: .utf8)
+
+        let results = DeepSeekHarnessScanner(root: root).scan()
+        XCTAssertEqual(results.count, 1)
+        let result = try XCTUnwrap(results.first)
+        let usage = try XCTUnwrap(result.usageRecords.first)
+        XCTAssertEqual(result.session.id, "session-recovered")
+        XCTAssertEqual(result.session.messageCount, 2)
+        XCTAssertEqual(usage.provider, .deepSeekHarness)
+        XCTAssertEqual(usage.timestamp, Date(timeIntervalSince1970: 1_794_188_020))
+        XCTAssertEqual(usage.usage, TokenUsage(inputTokens: 15, outputTokens: 4, cacheCreationTokens: 6, cacheReadTokens: 25))
+    }
+
     private func compressFrame(_ input: Data) throws -> Data {
         var output = [UInt8](repeating: 0, count: Int(ZSTD_compressBound(input.count)))
         let written = input.withUnsafeBytes { inputBytes in

@@ -70,14 +70,23 @@ struct DashboardView: View {
     }
 
     private func recompute() {
+        let dateRange = filter.dateRange
+        let models = Array(Set(store.usageRecords.lazy.filter { record in
+            guard let dateRange else { return true }
+            return record.timestamp >= dateRange.lowerBound && record.timestamp < dateRange.upperBound
+        }.map(\.model))).sorted()
+        let validSelection = selectedModels.intersection(Set(models))
+        if selectedModels != validSelection {
+            selectedModels = validSelection
+        }
         let f = filter
         let newBuckets = store.aggregator.dailyBuckets(records: store.usageRecords, filter: f)
         let newMonthlyBuckets = store.aggregator.monthlyBuckets(records: store.usageRecords, filter: f)
         let newTotals = store.aggregator.totals(records: store.usageRecords, filter: f)
-        let models = Array(Set(store.usageRecords.map(\.model))).sorted()
+        let allModels = Array(Set(store.usageRecords.map(\.model))).sorted()
         var palette: [String: Color] = [:]
         let baseColors: [Color] = [.blue, .orange, .green, .purple, .pink, .teal, .yellow, .indigo, .red, .mint, .cyan, .brown]
-        for (i, m) in models.enumerated() {
+        for (i, m) in allModels.enumerated() {
             palette[m] = baseColors[i % baseColors.count]
         }
         let sourceBuckets = store.aggregator.dailyBuckets(records: store.usageRecords, filter: sourceFilter)

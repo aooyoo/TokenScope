@@ -13,10 +13,9 @@ public enum DeepSeekHarnessParseError: Error {
 /// Parses DeepSeek Harness's per-session projection cache.
 ///
 /// Harness stores compressed event transcripts under `~/.dsh/sessions`, but it
-/// also maintains `~/.dsh/storages/session_projcache.json` as the authoritative
-/// session-list projection. The projection already de-duplicates streaming and
-/// final assistant events and separates uncached input, output, cache reads, and
-/// cache writes, so TokenScope can read it without depending on a zstd binary.
+/// also maintains a session-list projection under `~/.dsh/storages`, either in
+/// a single JSON file or one file per session. The projection provides totals
+/// for sessions whose transcripts cannot supply model-attributed usage.
 public struct DeepSeekHarnessParser: Sendable {
     public init() {}
 
@@ -29,47 +28,61 @@ public struct DeepSeekHarnessParser: Sendable {
             throw DeepSeekHarnessParseError.invalidCache
         }
 
-        let fallbackDate = (try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]))?
-            .contentModificationDate ?? Date(timeIntervalSince1970: 0)
-
         return cache.tables.sessions.map { sessionID, cached in
-            let usage = cached.rows.tokenUsage?.val.totals.tokenUsage ?? .zero
-            let startedAt = date(milliseconds: cached.identity.createdAt) ?? fallbackDate
-            let reportedEnd = date(milliseconds: cached.rows.sessionListMetadata?.val.lastPromptAt)
-                ?? startedAt
-            let endedAt = max(startedAt, reportedEnd)
-            let messageCount = max(0, cached.rows.sessionStats?.val.steps ?? 0)
-
-            let records: [UsageRecord]
-            if usage.totalTokens > 0 {
-                records = [UsageRecord(
-                    sessionId: sessionID,
-                    messageIndex: 0,
-                    provider: .deepSeekHarness,
-                    accountId: nil,
-                    model: "DeepSeek Harness",
-                    timestamp: endedAt,
-                    usage: usage
-                )]
-            } else {
-                records = []
-            }
-
-            let session = SessionRecord(
-                id: sessionID,
-                provider: .deepSeekHarness,
-                accountId: nil,
-                projectPath: cached.identity.cwd,
-                sourceFile: fileURL,
-                startedAt: startedAt,
-                endedAt: endedAt,
-                modelsUsed: usage.totalTokens > 0 ? ["DeepSeek Harness"] : [],
-                totalUsage: usage,
-                messageCount: messageCount
-            )
-            return DeepSeekHarnessParseResult(session: session, usageRecords: records)
+            makeResult(sessionID: sessionID, cached: cached, fileURL: fileURL)
         }
         .sorted { $0.session.startedAt > $1.session.startedAt }
+    }
+
+    fileprivate func parseSessionProjection(fileURL: URL) throws -> DeepSeekHarnessParseResult {
+        let data = try Data(contentsOf: fileURL)
+        let projection = try JSONDecoder().decode(SessionProjectionFile.self, from: data)
+        let sessionID = fileURL.deletingPathExtension().lastPathComponent
+        return makeResult(sessionID: sessionID, cached: projection.record, fileURL: fileURL)
+    }
+
+    private func makeResult(
+        sessionID: String,
+        cached: CachedSession,
+        fileURL: URL
+    ) -> DeepSeekHarnessParseResult {
+        let usage = cached.rows.tokenUsage?.val.totals.tokenUsage ?? .zero
+        let startedAt = date(milliseconds: cached.identity.createdAt)
+            ?? (try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+            ?? Date(timeIntervalSince1970: 0)
+        let reportedEnd = date(milliseconds: cached.rows.sessionListMetadata?.val.lastPromptAt)
+            ?? startedAt
+        let endedAt = max(startedAt, reportedEnd)
+        let messageCount = max(0, cached.rows.sessionStats?.val.steps ?? 0)
+
+        let records: [UsageRecord]
+        if usage.totalTokens > 0 {
+            records = [UsageRecord(
+                sessionId: sessionID,
+                messageIndex: 0,
+                provider: .deepSeekHarness,
+                accountId: nil,
+                model: "DeepSeek Harness",
+                timestamp: endedAt,
+                usage: usage
+            )]
+        } else {
+            records = []
+        }
+
+        let session = SessionRecord(
+            id: sessionID,
+            provider: .deepSeekHarness,
+            accountId: nil,
+            projectPath: cached.identity.cwd,
+            sourceFile: fileURL,
+            startedAt: startedAt,
+            endedAt: endedAt,
+            modelsUsed: usage.totalTokens > 0 ? ["DeepSeek Harness"] : [],
+            totalUsage: usage,
+            messageCount: messageCount
+        )
+        return DeepSeekHarnessParseResult(session: session, usageRecords: records)
     }
 
     private func date(milliseconds: Double?) -> Date? {
@@ -237,14 +250,22 @@ public struct DeepSeekHarnessScanner: Sendable {
     }
 
     public func scan() -> [DeepSeekHarnessParseResult] {
-        let cacheFile = root
-            .appendingPathComponent("storages", isDirectory: true)
-            .appendingPathComponent("session_projcache.json")
+        let storage = root.appendingPathComponent("storages", isDirectory: true)
+        let cacheFile = storage.appendingPathComponent("session_projcache.json")
         var cachedByID = Dictionary(
             uniqueKeysWithValues: ((try? parser.parse(fileURL: cacheFile)) ?? [])
                 .map { ($0.session.id, $0) }
         )
-        var transcriptByID: [String: DeepSeekHarnessTranscriptParseResult] = [:]
+        let projections = storage.appendingPathComponent("session_projcache/sessions", isDirectory: true)
+        let projectionFiles = (try? FileManager.default.contentsOfDirectory(
+            at: projections, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
+        )) ?? []
+        for file in projectionFiles where file.pathExtension == "json" {
+            guard let projection = try? parser.parseSessionProjection(fileURL: file) else { continue }
+            cachedByID[projection.session.id] = projection
+        }
+
+        var transcriptByID: [String: (version: Int, result: DeepSeekHarnessTranscriptParseResult)] = [:]
 
         let transcriptRoot = root.appendingPathComponent("sessions", isDirectory: true)
         if let enumerator = FileManager.default.enumerator(
@@ -252,24 +273,36 @@ public struct DeepSeekHarnessScanner: Sendable {
             includingPropertiesForKeys: [.isRegularFileKey],
             options: [.skipsHiddenFiles]
         ) {
-            for case let file as URL in enumerator
-                where file.lastPathComponent == "session.jsonl.zstd" {
-                guard let transcript = try? transcriptParser.parse(fileURL: file) else { continue }
-                if let existing = transcriptByID[transcript.sessionID],
-                   existing.usageRecords.count > transcript.usageRecords.count {
-                    continue
+            for case let file as URL in enumerator {
+                guard let version = transcriptVersion(file.lastPathComponent),
+                      let transcript = try? transcriptParser.parse(fileURL: file) else { continue }
+                if let existing = transcriptByID[transcript.sessionID] {
+                    let oldCount = existing.result.usageRecords.count
+                    let newCount = transcript.usageRecords.count
+                    if oldCount > newCount || (oldCount == newCount && existing.version >= version) {
+                        continue
+                    }
                 }
-                transcriptByID[transcript.sessionID] = transcript
+                transcriptByID[transcript.sessionID] = (version, transcript)
             }
         }
 
         var results: [DeepSeekHarnessParseResult] = []
-        for transcript in transcriptByID.values {
+        for (_, transcript) in transcriptByID.values {
             let cached = cachedByID.removeValue(forKey: transcript.sessionID)
             results.append(merge(cached: cached, transcript: transcript))
         }
         results.append(contentsOf: cachedByID.values)
         return results.sorted { $0.session.startedAt > $1.session.startedAt }
+    }
+
+    private func transcriptVersion(_ name: String) -> Int? {
+        switch name {
+        case "session.jsonl.zstd": return 0
+        case "session.v3.jsonl.zstd": return 3
+        case "session.v4.jsonl.zstd": return 4
+        default: return nil
+        }
     }
 
     private func merge(
@@ -308,6 +341,10 @@ public struct DeepSeekHarnessScanner: Sendable {
 
 private struct CacheFile: Decodable {
     let tables: CacheTables
+}
+
+private struct SessionProjectionFile: Decodable {
+    let record: CachedSession
 }
 
 private struct CacheTables: Decodable {
