@@ -6,6 +6,17 @@ public struct SessionDetailLoader: Sendable {
     public func loadDetail(for session: SessionRecord, usageRecords: [UsageRecord]) throws -> SessionDetail {
         switch session.provider {
         case .claudeCode:
+            if session.sourceFile.lastPathComponent == "audit.jsonl"
+                || (session.sourceFile.pathExtension == "ndjson"
+                    && session.sourceFile.deletingLastPathComponent().lastPathComponent == "usage-ledger") {
+                return SessionDetail(
+                    session: session,
+                    mode: .usageOnly,
+                    usageRecords: usageRecords.filter { $0.provider == .claudeCode && $0.sessionId == session.id }
+                        .sorted { $0.timestamp < $1.timestamp },
+                    notice: CoreL10n.string("Claude Desktop Chat and Cowork usage from local token records, included in Claude Code totals.")
+                )
+            }
             return try loadClaudeDetail(for: session)
         case .openCode:
             return try loadOpenCodeDetail(for: session)

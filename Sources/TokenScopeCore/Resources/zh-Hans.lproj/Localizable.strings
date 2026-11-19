@@ -25,6 +25,7 @@
 "Latest session" = "最近会话";
 "Local sessions" = "本地会话";
 "No Claude Code sessions found." = "未找到 Claude Code 会话。";
+"Claude Desktop Chat and Cowork usage from local token records, included in Claude Code totals." = "来自本地 Token 记录的 Claude Desktop Chat 和 Cowork 用量，已计入 Claude Code 总用量。";
 "No WorkBuddy sessions found." = "未找到 WorkBuddy 会话。";
 "System account" = "系统账号";
 "OAuth · System account" = "OAuth · 系统账号";

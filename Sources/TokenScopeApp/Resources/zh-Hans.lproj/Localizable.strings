@@ -122,6 +122,9 @@
 "Failed" = "失败";
 "Directories" = "目录";
 "Claude Code data dir" = "Claude Code 数据目录";
+"Claude Desktop (Chat / Cowork) data dir" = "Claude Desktop（Chat / Cowork）数据目录";
+"Claude Desktop (3p Chat / Cowork) data dir" = "Claude Desktop（3p Chat / Cowork）数据目录";
+"Claude Code totals include local Claude Desktop Chat and Cowork token records. Chat history without local token records cannot be counted." = "Claude Code 用量包含 Claude Desktop Chat 和 Cowork 的本地 Token 记录；未保存本地 Token 明细的 Chat 历史无法统计。";
 "Codex data dir" = "Codex 数据目录";
 "OpenCode data dir" = "OpenCode 数据目录";
 "WorkBuddy data dir" = "WorkBuddy 数据目录";

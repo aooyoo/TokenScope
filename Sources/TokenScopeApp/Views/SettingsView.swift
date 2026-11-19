@@ -102,6 +102,17 @@ struct SettingsView: View {
 
             Section(L10n.string("Directories")) {
                 SettingsPathRow(title: L10n.string("Claude Code data dir"), url: claudeDataDir)
+                SettingsPathRow(
+                    title: L10n.string("Claude Desktop (Chat / Cowork) data dir"),
+                    url: ClaudeCodeScanner.defaultDesktopRoots[0]
+                )
+                SettingsPathRow(
+                    title: L10n.string("Claude Desktop (3p Chat / Cowork) data dir"),
+                    url: ClaudeCodeScanner.defaultDesktopRoots[2]
+                )
+                Text(L10n.string("Claude Code totals include local Claude Desktop Chat and Cowork token records. Chat history without local token records cannot be counted."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 SettingsPathRow(title: L10n.string("Codex data dir"), url: codexDataDir)
                 SettingsPathRow(title: L10n.string("OpenCode data dir"), url: openCodeDataDir)
                 SettingsPathRow(title: L10n.string("WorkBuddy data dir"), url: workBuddyDataDir)

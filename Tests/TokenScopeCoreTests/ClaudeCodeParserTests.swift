@@ -3,14 +3,16 @@ import XCTest
 
 final class ClaudeCodeParserTests: XCTestCase {
     func testParseBasicSession() throws {
-        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("session_\(UUID()).jsonl")
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("session_\(UUID())")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let tmp = directory.appendingPathComponent("abc.jsonl")
         let lines = [
             #"{"type":"user","sessionId":"abc","cwd":"/tmp/proj","timestamp":"2026-04-01T10:00:00.000Z","message":{"role":"user","content":"hi"}}"#,
             #"{"type":"assistant","sessionId":"abc","cwd":"/tmp/proj","timestamp":"2026-04-01T10:00:05.000Z","message":{"role":"assistant","model":"claude-opus-4-6","usage":{"input_tokens":100,"output_tokens":20,"cache_creation_input_tokens":5,"cache_read_input_tokens":10}}}"#,
             #"{"type":"assistant","sessionId":"abc","cwd":"/tmp/proj","timestamp":"2026-04-01T10:00:10.000Z","message":{"role":"assistant","model":"claude-opus-4-6","usage":{"input_tokens":50,"output_tokens":12,"cache_creation_input_tokens":0,"cache_read_input_tokens":20}}}"#,
         ].joined(separator: "\n")
         try lines.write(to: tmp, atomically: true, encoding: .utf8)
-        defer { try? FileManager.default.removeItem(at: tmp) }
+        defer { try? FileManager.default.removeItem(at: directory) }
 
         let parser = ClaudeCodeParser()
         let result = try parser.parse(fileURL: tmp)
